@@ -11,7 +11,7 @@ public enum NisPeerId implements ApiId {
 	/**
 	 * The block/at API.
 	 */
-	REST_BLOCK_AT("/block/at"),
+	REST_BLOCK_AT("/block/at/public"),
 
 	//endregion
 
