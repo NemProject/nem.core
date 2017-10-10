@@ -9,44 +9,56 @@ import java.util.function.Supplier;
  * Default implementation for calculating and validating transaction fees.
  */
 public class DefaultTransactionFeeCalculator implements TransactionFeeCalculator {
+	private static Amount FEE_UNIT_SECOND_FORK = Amount.fromMicroNem(50_000L);
+
 	private final Supplier<BlockHeight> heightSupplier;
-	private final BlockHeight forkHeight;
-	private final TransactionFeeCalculatorBeforeFork calculatorBeforeFork;
-	private final TransactionFeeCalculatorAfterFork calculatorAfterFork;
+	private final BlockHeight[] forkHeights;
+	private final TransactionFeeCalculator[] calculators;
 
 	public DefaultTransactionFeeCalculator(
 			final MosaicFeeInformationLookup mosaicFeeInformationLookup,
 			final Supplier<BlockHeight> heightSupplier,
-			final BlockHeight forkHeight) {
+			final BlockHeight[] forkHeights) {
 		this(
 				heightSupplier,
-				forkHeight,
-				new TransactionFeeCalculatorBeforeFork(mosaicFeeInformationLookup),
-				new TransactionFeeCalculatorAfterFork(mosaicFeeInformationLookup));
+				forkHeights,
+				new TransactionFeeCalculator[] {
+						new TransactionFeeCalculatorBeforeFork(mosaicFeeInformationLookup),
+						new TransactionFeeCalculatorAfterFork(mosaicFeeInformationLookup),
+						new FeeUnitAwareTransactionFeeCalculator(FEE_UNIT_SECOND_FORK, mosaicFeeInformationLookup)
+				});
 	}
 
 	public DefaultTransactionFeeCalculator(
 			final Supplier<BlockHeight> heightSupplier,
-			final BlockHeight forkHeight,
-			final TransactionFeeCalculatorBeforeFork calculatorBeforeFork,
-			final TransactionFeeCalculatorAfterFork calculatorAfterFork) {
+			final BlockHeight[] forkHeights,
+			final TransactionFeeCalculator[] calculators) {
+		if (forkHeights.length + 1 != calculators.length) {
+			throw new RuntimeException("number of fee forks mismatch number of fee calculators");
+		}
+
 		this.heightSupplier = heightSupplier;
-		this.forkHeight = forkHeight;
-		this.calculatorBeforeFork = calculatorBeforeFork;
-		this.calculatorAfterFork = calculatorAfterFork;
+		this.forkHeights = forkHeights;
+		this.calculators = calculators;
 	}
 
 	@Override
 	public Amount calculateMinimumFee(Transaction transaction) {
-		return this.heightSupplier.get().compareTo(this.forkHeight) < 0
-				? this.calculatorBeforeFork.calculateMinimumFee(transaction)
-				: this.calculatorAfterFork.calculateMinimumFee(transaction);
+		return this.getCalculator(this.heightSupplier.get()).calculateMinimumFee(transaction);
 	}
 
 	@Override
 	public boolean isFeeValid(Transaction transaction, BlockHeight blockHeight) {
-		return blockHeight.compareTo(this.forkHeight) < 0
-				? this.calculatorBeforeFork.isFeeValid(transaction, blockHeight)
-				: this.calculatorAfterFork.isFeeValid(transaction, blockHeight);
+		return this.getCalculator(blockHeight).isFeeValid(transaction, blockHeight);
+	}
+
+	private TransactionFeeCalculator getCalculator(final BlockHeight blockHeight) {
+		for (int i = 0; i < this.forkHeights.length; ++i) {
+			if (blockHeight.compareTo(this.forkHeights[i]) < 0) {
+				return this.calculators[i];
+			}
+		}
+
+		return this.calculators[this.forkHeights.length];
 	}
 }

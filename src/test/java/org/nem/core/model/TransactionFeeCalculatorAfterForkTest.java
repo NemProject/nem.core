@@ -9,8 +9,6 @@ import org.nem.core.test.*;
 
 @RunWith(Enclosed.class)
 public class TransactionFeeCalculatorAfterForkTest extends AbstractTransactionFeeCalculatorTest {
-	private static final long FEE_UNIT = 2;
-
 	@BeforeClass
 	public static void setup() {
 		DEFAULT_HEIGHT = new BlockHeight(100);
@@ -18,10 +16,10 @@ public class TransactionFeeCalculatorAfterForkTest extends AbstractTransactionFe
 		NemGlobals.setTransactionFeeCalculator(new DefaultTransactionFeeCalculator(
 				lookup,
 				() -> DEFAULT_HEIGHT,
-				DEFAULT_HEIGHT.prev()));
-		setNamespaceAndMosaicRelatedDefaultFee(20);
-		setTransactionDefaultFee(6);
-		setMultisigSignatureMinimumFee(6);
+				new BlockHeight[] { DEFAULT_HEIGHT.prev(), new BlockHeight(1_000_000_000L) }));
+		setNamespaceAndMosaicRelatedDefaultFee(20_000_000);
+		setTransactionDefaultFee(6_000_000);
+		setMultisigSignatureMinimumFee(6_000_000);
 	}
 
 	@AfterClass
@@ -123,7 +121,7 @@ public class TransactionFeeCalculatorAfterForkTest extends AbstractTransactionFe
 		@Test
 		public void transfersOfManyMosaicsWithDivisibilityZeroAndLowSupplyHaveMinimumFee() {
 			// Arrange:
-			for (int i=1; i <=10; ++i) {
+			for (int i = 1; i <= 10; ++i) {
 				// Arrange:
 				final TransferTransaction transaction = createTransfer(1, null);
 				final MosaicId mosaicId = Utils.createMosaicId("foo", String.format("small business %d", i));
@@ -235,7 +233,7 @@ public class TransactionFeeCalculatorAfterForkTest extends AbstractTransactionFe
 
 		@Test
 		public void feesForMosaicTransfersAreOneIfMosaicSupplyIsZero() {
-			// Arrange:
+			// Arrange: zero supply should not happen in a real environment
 			final TransferTransaction transaction = createTransfer(5, null);
 			final MosaicId mosaicId = Utils.createMosaicId("foo", "zero supply");
 			transaction.getAttachment().addMosaic(mosaicId, Quantity.fromValue(1_000_000));

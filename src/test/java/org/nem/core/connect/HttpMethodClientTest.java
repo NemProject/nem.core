@@ -47,7 +47,7 @@ public class HttpMethodClientTest {
 	}
 
 	private static class TestRunner {
-		private static final String GOOD_URL = "http://bob.nem.ninja/test.json";
+		private static final String GOOD_URL = "http://bigalice2.nem.ninja/test.json";
 		private static final String MALFORMED_URI = "http://www.example.com/customers/[12345]";
 		private static final String HOST_LESS_URI = "file:///~/calendar";
 

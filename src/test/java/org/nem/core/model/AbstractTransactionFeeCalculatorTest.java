@@ -9,6 +9,7 @@ import org.nem.core.test.*;
 import org.nem.core.time.TimeInstant;
 
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 
 public class AbstractTransactionFeeCalculatorTest {
@@ -20,6 +21,10 @@ public class AbstractTransactionFeeCalculatorTest {
 		ProvisionNamespaceMinimumFeeCalculation.setDefaultFee(fee);
 		MosaicDefinitionCreationMinimumFeeCalculation.setDefaultFee(fee);
 		MosaicSupplyChangeMinimumFeeCalculation.setDefaultFee(fee);
+	}
+
+	protected static void setMultisigAggregateModificationFeeCalculation(final BiFunction<Integer, Boolean, Amount> calculator) {
+		MultisigAggregateModificationMinimumFeeCalculation.setFeeCalculation(calculator);
 	}
 
 	// The default fee transactions
@@ -92,39 +97,48 @@ public class AbstractTransactionFeeCalculatorTest {
 
 	public static class MultisigAggregateModificationMinimumFeeCalculation {
 		private static final Boolean MIN_COSIGNATORIES_MODIFICATION_PRESENT = true;
+		private static BiFunction<Integer, Boolean, Amount> CALCULATOR = MultisigAggregateModificationMinimumFeeCalculation::calculateExpectedFee;
 
 		@Test
 		public void feeIsCalculatedCorrectlyForSingleCosignatoryModificationWithoutMinCosignatoriesModification() {
 			// Assert:
-			assertFee(1, !MIN_COSIGNATORIES_MODIFICATION_PRESENT, Amount.fromNem((5 + 3) * FEE_UNIT));
+			assertFee(1, !MIN_COSIGNATORIES_MODIFICATION_PRESENT, CALCULATOR.apply(1, false));
 		}
 
 		@Test
 		public void feeIsCalculatedCorrectlyForMultipleCosignatoryModificationsWithoutMinCosignatoriesModification() {
 			// Assert:
 			for (int i = 2; i < 10; ++i) {
-				assertFee(i, !MIN_COSIGNATORIES_MODIFICATION_PRESENT, Amount.fromNem((5 + 3 * i) * FEE_UNIT));
+				assertFee(i, !MIN_COSIGNATORIES_MODIFICATION_PRESENT, CALCULATOR.apply(i, false));
 			}
 		}
 
 		@Test
 		public void feeIsCalculatedCorrectlyForZeroCosignatoryModificationsWithMinCosignatoriesModification() {
 			// Assert:
-			assertFee(0, MIN_COSIGNATORIES_MODIFICATION_PRESENT, Amount.fromNem((5 + 3) * FEE_UNIT));
+			assertFee(0, MIN_COSIGNATORIES_MODIFICATION_PRESENT, CALCULATOR.apply(0, true));
 		}
 
 		@Test
 		public void feeIsCalculatedCorrectlyForSingleCosignatoryModificationWithMinCosignatoriesModification() {
 			// Assert:
-			assertFee(1, MIN_COSIGNATORIES_MODIFICATION_PRESENT, Amount.fromNem((5 + 3 + 3) * FEE_UNIT));
+			assertFee(1, MIN_COSIGNATORIES_MODIFICATION_PRESENT, CALCULATOR.apply(1, true));
 		}
 
 		@Test
 		public void feeIsCalculatedCorrectlyForMultipleCosignatoryModificationsWithMinCosignatoriesModification() {
 			// Assert:
 			for (int i = 2; i < 10; ++i) {
-				assertFee(i, MIN_COSIGNATORIES_MODIFICATION_PRESENT, Amount.fromNem((5 + 3 * i + 3) * FEE_UNIT));
+				assertFee(i, MIN_COSIGNATORIES_MODIFICATION_PRESENT, CALCULATOR.apply(i, true));
 			}
+		}
+
+		protected static Amount calculateExpectedFee(final int numModification, boolean hasMinCosignatoriesModification) {
+			return Amount.fromNem((5 + 3 * numModification + (hasMinCosignatoriesModification ? 3 : 0)) * FEE_UNIT);
+		}
+
+		private static void setFeeCalculation(final BiFunction<Integer, Boolean, Amount> newCalculator) {
+			CALCULATOR = newCalculator;
 		}
 
 		private static void assertFee(
@@ -144,7 +158,7 @@ public class AbstractTransactionFeeCalculatorTest {
 	//region other transactions
 
 	private static abstract class DefaultMinimumFeeCalculation {
-		private static long DEFAULT_FEE = 6;
+		private static long DEFAULT_FEE = 6_000_000;
 
 		@Test
 		public void feeIsDefaultFee() {
@@ -152,7 +166,7 @@ public class AbstractTransactionFeeCalculatorTest {
 			final Transaction transaction = this.createTransaction();
 
 			// Assert:
-			assertTransactionFee(transaction, Amount.fromNem(this.expectedFee()));
+			assertTransactionFee(transaction, Amount.fromMicroNem(this.expectedFee()));
 		}
 
 		protected abstract Transaction createTransaction();
@@ -356,7 +370,7 @@ public class AbstractTransactionFeeCalculatorTest {
 	}
 
 	public static class MultisigSignatureIsValidCalculation {
-		private static long MINIMUM_FEE = 6;
+		private static long MINIMUM_FEE = 6_000_000;
 		private static final int FORK_HEIGHT = 92000;
 
 		@Test
@@ -383,22 +397,9 @@ public class AbstractTransactionFeeCalculatorTest {
 		}
 
 		@Test
-		public void feeAboveMinimumFeeUpToOneThousandXemIsInvalidBeforeForkHeight() {
+		public void feeAboveMinimumFeeUpToOneThousandXemIsValid() {
 			// Assert:
-			final long[] heights = new long[] { 1, MINIMUM_FEE - 1 };
-			assertFeeAboveMinimumFeeUpToOneThousandXemHasExpectedValidityAtHeights(heights, false);
-		}
-
-		@Test
-		public void feeAboveMinimumFeeUpToOneThousandXemIsValidAtForkHeight() {
-			// Assert:
-			assertFeeAboveMinimumFeeUpToOneThousandXemHasExpectedValidityAtHeight(FORK_HEIGHT, true);
-		}
-
-		@Test
-		public void feeAboveMinimumFeeUpToOneThousandXemIsValidAfterForkHeight() {
-			// Assert:
-			final long[] heights = new long[] { FORK_HEIGHT + 1, FORK_HEIGHT + 10, FORK_HEIGHT + 100 };
+			final long[] heights = new long[] { 100, 1000, FORK_HEIGHT + 1, FORK_HEIGHT + 10, FORK_HEIGHT + 1000 };
 			assertFeeAboveMinimumFeeUpToOneThousandXemHasExpectedValidityAtHeights(heights, true);
 		}
 
@@ -408,9 +409,9 @@ public class AbstractTransactionFeeCalculatorTest {
 
 			// Assert:
 			assertFeeValidationResult(transaction, MINIMUM_FEE + 1, height, expectedResult);
-			assertFeeValidationResult(transaction, 10, height, expectedResult);
-			assertFeeValidationResult(transaction, 100, height, expectedResult);
-			assertFeeValidationResult(transaction, 1000, height, expectedResult);
+			assertFeeValidationResult(transaction, 10_000_000, height, expectedResult);
+			assertFeeValidationResult(transaction, 100_000_000, height, expectedResult);
+			assertFeeValidationResult(transaction, 1000_000_000, height, expectedResult);
 		}
 
 		public static void assertFeeAboveMinimumFeeUpToOneThousandXemHasExpectedValidityAtHeights(final long[] heights, final boolean expectedResult) {
@@ -426,7 +427,7 @@ public class AbstractTransactionFeeCalculatorTest {
 			final Transaction transaction = RandomTransactionFactory.createMultisigSignature();
 
 			// Assert:
-			assertFeeValidationResult(transaction, 1001, false);
+			assertFeeValidationResult(transaction, 1001_000_000, false);
 		}
 
 		private static void setMultisigSignatureMinimumFee(final long fee) {
@@ -477,9 +478,9 @@ public class AbstractTransactionFeeCalculatorTest {
 		Amount minimumFee = createCalculator().calculateMinimumFee(transaction);
 
 		if (delta < 0) {
-			minimumFee = minimumFee.subtract(Amount.fromNem(-1 * delta));
+			minimumFee = minimumFee.subtract(Amount.fromMicroNem(-1 * delta));
 		} else if (delta > 0) {
-			minimumFee = minimumFee.add(Amount.fromNem(delta));
+			minimumFee = minimumFee.add(Amount.fromMicroNem(delta));
 		}
 
 		transaction.setFee(minimumFee);
@@ -501,7 +502,7 @@ public class AbstractTransactionFeeCalculatorTest {
 			final long height,
 			final boolean expectedResult) {
 		// Arrange:
-		transaction.setFee(Amount.fromNem(fee));
+		transaction.setFee(Amount.fromMicroNem(fee));
 
 		// Act:
 		final boolean isValid = createCalculator().isFeeValid(transaction, new BlockHeight(height));

@@ -23,8 +23,17 @@ public class SerializableAccountId extends AccountId implements SerializableEnti
 	/**
 	 * Creates a new account id.
 	 *
+	 * @param address The account address string.
+	 */
+	public SerializableAccountId(final String address) {
+		super(address);
+	}
+	/**
+	 * Creates a new account id.
+	 *
 	 * @param deserializer The deserializer.
 	 */
+
 	public SerializableAccountId(final Deserializer deserializer) {
 		super(deserializer);
 	}

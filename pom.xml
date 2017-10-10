@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.nem.core</groupId>
 	<artifactId>nem-core</artifactId>
-	<version>0.6.91-BETA</version>
+	<version>0.6.93-BETA</version>
 	<name>NEM Core</name>
     <organization>
         <name>NEM - New Economy Movement</name>

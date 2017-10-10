@@ -26,8 +26,26 @@ public class SerializableAccountIdTest {
 		// Arrange:
 		final Address address = Address.fromEncoded("TBAD");
 
-		// Act:
+		// Assert:
 		ExceptionAssert.assertThrows(v -> new SerializableAccountId(address), IllegalArgumentException.class);
+	}
+
+	@Test
+	public void canCreateIdAroundValidAddressString() {
+		// Arrange:
+		final Address address = Utils.generateRandomAddress();
+
+		// Act:
+		final SerializableAccountId accountId = new SerializableAccountId(address.toString());
+
+		// Assert:
+		Assert.assertThat(getAddress(accountId), IsEqual.equalTo(address));
+	}
+
+	@Test
+	public void cannotCreateIdAroundInvalidAddressString() {
+		// Assert:
+		ExceptionAssert.assertThrows(v -> new SerializableAccountId("TBAD"), IllegalArgumentException.class);
 	}
 
 	@Test
