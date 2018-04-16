@@ -18,6 +18,8 @@ public class TransactionHashesNotificationTest {
 		}
 
 		final TransactionHashesNotification notification = new TransactionHashesNotification(pairs);
+		
+
 
 		// Assert:
 		Assert.assertThat(notification.getType(), IsEqual.equalTo(NotificationType.TransactionHashes));

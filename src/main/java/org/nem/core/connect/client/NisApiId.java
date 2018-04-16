@@ -41,6 +41,17 @@ public enum NisApiId implements ApiId {
 	NIS_REST_ACCOUNT_BATCH_LOOK_UP("/account/get/batch"),
 
 	/**
+	 * The /account/mosaic/definition/page API
+	 */
+	NIS_REST_ACCOUNT_MOSAIC_DEFINITION_PAGE("/account/mosaic/definition/page"),
+	
+	/**
+	 * The /account/namespace/page API
+	 */
+	NIS_REST_ACCOUNT_NAMESPACE_PAGE("/account/namespace/page"),
+	
+	
+	/**
 	 * The /account/mosaic/owned API
 	 */
 	NIS_REST_ACCOUNT_MOSAIC_OWNED("/account/mosaic/owned"),
@@ -96,6 +107,24 @@ public enum NisApiId implements ApiId {
 	NIS_REST_BLOCK_AFTER_LOCAL("/local/chain/blocks-after"),
 
 	//endregion
+	
+	//namespace and mosaics /*
+	
+	/**
+	 * The /namespace/root/page API
+	 */
+	NIS_REST_NAMESPACE_ROOT_PAGE("/namespace/root/page"),
+	
+	/**
+	 * The /namespace API
+	 */
+	NIS_REST_NAMESPACE("/namespace"),
+	
+	/**
+	 * The /namespace/mosaic/definition/page API
+	 */
+	NIS_REST_NAMESPACE_MOSAIC_DEFINITION_PAGE("/namespace/mosaic/definition/page"),
+	
 
 	//region chain/*
 

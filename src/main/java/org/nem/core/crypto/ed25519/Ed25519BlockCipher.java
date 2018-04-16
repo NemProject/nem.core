@@ -83,6 +83,7 @@ public class Ed25519BlockCipher implements BlockCipher {
 		try {
 			length += cipher.doFinal(buf, length);
 		} catch (final InvalidCipherTextException e) {
+			e.printStackTrace();
 			return null;
 		}
 

@@ -383,7 +383,12 @@ public enum ValidationResult {
 	/**
 	 * Validation failed because the mosaic levy is not transferable.
 	 */
-	FAILURE_MOSAIC_LEVY_NOT_TRANSFERABLE(153);
+	FAILURE_MOSAIC_LEVY_NOT_TRANSFERABLE(153),
+
+	/**
+	 * Validation failed because the mosaic levy is unknown.
+	 */
+	FAILURE_MOSAIC_LEVY_UNKNOWN(154);
 
 	//endregion
 
