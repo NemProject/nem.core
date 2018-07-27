@@ -190,23 +190,21 @@ public class NodeCollection implements SerializableEntity {
 	 * @param status The node status.
 	 */
 	public void update(final Node node, final NodeStatus status) {
-		if (null == node) {
-			throw new NullPointerException("node cannot be null");
-		}
+    		if (node != null) {
+     		 for (final Map.Entry<NodeStatus, Set<Node>> entry : this.statusNodesMap.entrySet()) {
+        		entry.getValue().remove(node);
+      		 }
 
-		for (final Map.Entry<NodeStatus, Set<Node>> entry : this.statusNodesMap.entrySet()) {
-			entry.getValue().remove(node);
-		}
+      			final Set<Node> nodes = this.statusNodesMap.getOrDefault(status, null);
+      				if (null != nodes) {
+        		this.statusNodesMap.get(status).add(node);
+      				 }
 
-		final Set<Node> nodes = this.statusNodesMap.getOrDefault(status, null);
-		if (null != nodes) {
-			this.statusNodesMap.get(status).add(node);
-		}
-
-		if (!this.isPruneCandidate(node)) {
-			this.pruneCandidates.remove(node);
-		}
-	}
+      		if (!this.isPruneCandidate(node)) {
+        		this.pruneCandidates.remove(node);
+      		}
+    								}
+  	}
 
 	/**
 	 * Takes a snapshot of all inactive nodes and drops the inactive nodes
