@@ -183,6 +183,16 @@ public enum NisApiId implements ApiId {
 
 	//endregion
 
+  //region block/*
+
+  /**
+   * The block/at/public API.
+   */
+  NIS_REST_BLOCK_AT_PUBLIC("/block/at/public"),
+
+  //endregion
+
+
 	//region time-sync/*
 
 	/**
