@@ -13,7 +13,6 @@
 	<properties>
         <nemCodeBase>http://bob.nem.ninja/</nemCodeBase>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<spring.version>4.1.6.RELEASE</spring.version>
 	</properties>
 
     <dependencies>
