@@ -19,24 +19,18 @@ public class ParallelVerifyPerfITCase {
 		final int count = 10000;
 		final Collection<Transaction> transactions = createTransactions(count);
 
-		// Warm up
-		for (int i = 0; i < 5; i++) {
-			LOGGER.info("Warm up round " + (i + 1));
-			Assert.assertThat(transactions.parallelStream().allMatch(VerifiableEntity::verify), IsEqual.equalTo(true));
-		}
-
 		// Act:
-		LOGGER.info("Running parallel test...");
-		final long startParallel = System.nanoTime();
-		final boolean resultParallel = transactions.parallelStream().allMatch(VerifiableEntity::verify);
-		final long stopParallel = System.nanoTime();
-		LOGGER.info(String.format("Parallel verify: %d ns/tx", (stopParallel - startParallel) / count));
-
 		LOGGER.info("Running sequential test...");
 		final long startSequential = System.nanoTime();
 		final boolean resultSequential = transactions.stream().allMatch(VerifiableEntity::verify);
 		final long stopSequential = System.nanoTime();
 		LOGGER.info(String.format("Sequential verify: %d ns/tx", (stopSequential - startSequential) / count));
+
+		LOGGER.info("Running parallel test...");
+		final long startParallel = System.nanoTime();
+		final boolean resultParallel = transactions.parallelStream().allMatch(VerifiableEntity::verify);
+		final long stopParallel = System.nanoTime();
+		LOGGER.info(String.format("Parallel verify: %d ns/tx", (stopParallel - startParallel) / count));
 
 		// Assert:
 		Assert.assertThat(resultParallel, IsEqual.equalTo(true));
